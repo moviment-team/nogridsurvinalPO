@@ -160,13 +160,12 @@
 
       .overlay-box {
         background-color: #0b301a; 
-        /* Padding adaptável: menor no celular, maior no PC */
         padding: clamp(10px, 3vw, 20px) clamp(15px, 5vw, 30px);
         border-radius: 12px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: clamp(8px, 2vw, 15px); /* Espaço interno adaptável */
+        gap: clamp(8px, 2vw, 15px);
         border: 1px solid rgba(255,255,255,0.15);
         width: 90%;
         max-width: 450px;
@@ -181,11 +180,10 @@
         line-height: 1.2;
       }
       
-      /* Textos com tamanhos dinâmicos (nunca ficam gigantes no celular) */
       .top-text { font-size: clamp(15px, 4vw, 24px); font-weight: 700; }
       .bottom-text { font-size: clamp(13px, 3vw, 20px); font-weight: 600; }
       
-      /* --- ÍCONE DE VOLUME (Responsivo) --- */
+      /* --- ÍCONE DE VOLUME ANIMADO COM CORTE (Responsivo) --- */
       .volume-icon-svg { 
         width: clamp(40px, 12vw, 70px); 
         height: clamp(40px, 12vw, 70px); 
@@ -247,7 +245,7 @@
         cursor: pointer;
         transition: opacity 0.2s;
         padding: clamp(5px, 2vw, 10px);
-        background: rgba(255, 255, 255, 0.05); /* Leve fundo para facilitar o toque no celular */
+        background: rgba(255, 255, 255, 0.05); 
         border-radius: 8px;
       }
       
@@ -255,12 +253,11 @@
       .pause-action-btn span { font-size: clamp(12px, 3vw, 18px); font-weight: 600; }
       .pause-action-btn svg { width: clamp(20px, 5vw, 30px); height: clamp(20px, 5vw, 30px); }
 
-      /* Ajuste especial de empilhamento de botões de pausa para celulares muito finos */
       @media (max-width: 480px) {
         .pause-actions { flex-direction: column; gap: 8px; }
       }
       
-      /* --- Barra de Progresso (Fina e Discreta) --- */
+      /* --- Barra de Progresso BEM FINA E DISCRETA --- */
       @keyframes fake-progress {
         0% { width: 0%; }
         100% { width: 100%; }
@@ -269,11 +266,11 @@
       .progress-bar {
         position: absolute;
         bottom: 0; left: 0;
-        height: 2px; /* Deixei muito mais fina (era 5px) */
+        height: 2px; /* <-- DEIXEI BEM FINA (2px) */
         background-color: #ff0000; 
         z-index: 30;
         width: 0%;
-        box-shadow: 0px -1px 3px rgba(255, 0, 0, 0.4); /* Brilho mais sutil */
+        box-shadow: 0px -1px 2px rgba(255, 0, 0, 0.3); /* <-- BRILHO MAIS DISCRETO */
         animation: fake-progress 900s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
         animation-play-state: running; 
       }
