@@ -104,36 +104,316 @@
     text-align: center;
   }
 } </style><div class="headline-inner"><h2>Zamów swój egzemplarz, zanim znikną wszystkie!</h2></div></div></div></div></div></section><section data-v-6bea8f81="" data-eid="754297" id="754297" class="section full" style="padding: 30px 0px; background-size: auto; background-repeat: no-repeat;"><div data-v-4b3acc2c="" data-v-6bea8f81="" data-eid="344788" id="344788" class="section_row" style="border-width: 0px; border-style: solid; border-color: transparent; color: rgb(48, 48, 48); font-size: 14px; text-align: initial; margin: 0px; padding: 0px; background-size: auto; background-repeat: no-repeat;"><div data-v-796cd32d="" data-v-4b3acc2c="" class="row-column" style="width: 100%;"><div data-v-8eb46620="" data-v-796cd32d="" data-eid="969124" class="element-wrapper"><div data-v-8eb46620="" id="969124" class="custom" style="margin: 10px 0px 0px;"><div class="custom-inner el-969124">
-<div class="elementor-element elementor-element-50400e2 elementor-widget elementor-widget-html" data-id="50400e2" data-element_type="widget" data-widget_type="html.default"> 
-  <div class="elementor-widget-container"> 
+<div class="elementor-element elementor-widget elementor-widget-html"> 
+  <div class="elementor-widget-container">
     
-    <div style="position: relative; height: 0; padding-bottom: 56.25%; padding-top: 0; overflow: hidden;"> 
+    <style>
+      /* --- Estrutura Base --- */
+      .vsl-wrapper {
+        position: relative;
+        width: 100%;
+        padding-bottom: 56.25%; /* Proporção 16:9 */
+        background-color: #000;
+        overflow: hidden;
+        border-radius: 8px; 
+      }
       
-      <iframe id="meuVideoYT" style="position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; z-index: 100" src="https://www.youtube.com/embed/Thxtu73Gp7M?enablejsapi=0&amp;modestbranding=1&amp;controls=0&amp;rel=0&amp;hd=1&amp;wmode=transparent" frameborder="0" allowfullscreen=""></iframe> 
-      
-      <div id="capaFalsa" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 102; background-color: #000; background-image: url('COLOQUE_O_LINK_DA_SUA_IMAGEM_AQUI'); background-size: cover; background-position: center; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+      .vsl-wrapper iframe {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        opacity: 0; 
+        transition: opacity 0.5s ease-in; 
         
-        <svg width="80" height="80" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="60" cy="60" r="60" fill="rgba(0,0,0,0.6)"/>
-          <path d="M85 60L45 85L45 35L85 60Z" fill="white"/>
-        </svg>
+        /* A MÁGICA ESTÁ AQUI: Isso desativa 100% dos botões, links e interações diretas do YouTube */
+        pointer-events: none; 
+      }
+      
+      .vsl-wrapper iframe.ready {
+        opacity: 1; 
+      }
+      
+      /* --- Escudo Invisível para Pausar o Vídeo --- */
+      .click-shield {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 15; /* Fica acima do vídeo, mas abaixo das telas de pausa e thumb */
+        cursor: pointer; 
+      }
 
+      /* --- TELA 1: Container Invisível para o Clique Inicial --- */
+      .overlay-container {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 0, 0, 0.1); 
+        cursor: pointer;
+        transition: opacity 0.3s ease-out, visibility 0.3s;
+      }
+      
+      /* --- TELA 1: A Caixinha Centralizada (Pulsante) --- */
+      @keyframes pulse-box {
+        0% { transform: scale(0.97); opacity: 0.9; }
+        50% { transform: scale(1.05); opacity: 1; box-shadow: 0px 15px 35px rgba(0,0,0,0.8), 0px 0px 15px rgba(255,255,255,0.2); }
+        100% { transform: scale(0.97); opacity: 0.9; }
+      }
+
+      .overlay-box {
+        background-color: #0b301a; 
+        padding: 4% 6%;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        border: 1px solid rgba(255,255,255,0.15);
+        width: 85%;
+        max-width: 450px;
+        animation: pulse-box 1.5s infinite ease-in-out;
+      }
+
+      .overlay-box p {
+        color: white; 
+        font-family: sans-serif; 
+        margin: 0; 
+        text-align: center;
+      }
+      
+      .top-text { font-size: clamp(18px, 4vw, 24px); font-weight: 700; }
+      .bottom-text { font-size: clamp(16px, 3vw, 20px); font-weight: 600; }
+      
+      /* --- ÍCONE DE VOLUME ANIMADO COM CORTE --- */
+      .volume-icon-svg { width: 70px; height: 70px; }
+      
+      @keyframes sound-waves {
+        0% { opacity: 0; transform: translateX(-2px); }
+        30% { opacity: 1; transform: translateX(0); }
+        100% { opacity: 0; transform: translateX(2px); }
+      }
+      
+      .wave {
+        opacity: 0; 
+        animation: sound-waves 1.5s infinite ease-in-out;
+        transform-origin: left center;
+      }
+      
+      .wave-1 { animation-delay: 0s; }
+      .wave-2 { animation-delay: 0.3s; }
+      .wave-3 { animation-delay: 0.6s; }
+
+      /* --- TELA 2: Tela de Pausa --- */
+      .pause-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: #0b301a; 
+        z-index: 25;
+        display: none; 
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: sans-serif;
+        cursor: pointer; 
+      }
+      
+      .pause-title {
+        font-size: clamp(20px, 4vw, 32px);
+        font-weight: 700;
+        margin: 0 0 30px 0;
+        text-align: center;
+      }
+      
+      .pause-actions {
+        display: flex;
+        gap: 30px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      
+      .pause-action-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        padding: 10px;
+      }
+      
+      .pause-action-btn:hover { opacity: 0.7; }
+      .pause-action-btn span { font-size: clamp(14px, 3vw, 18px); font-weight: 600; }
+      
+      /* --- Barra de Progresso Vermelha --- */
+      @keyframes fake-progress {
+        0% { width: 0%; }
+        100% { width: 100%; }
+      }
+      
+      .progress-bar {
+        position: absolute;
+        bottom: 0; left: 0;
+        height: 5px; 
+        background-color: #ff0000; 
+        z-index: 30;
+        width: 0%;
+        box-shadow: 0px -1px 6px rgba(255, 0, 0, 0.7);
+        animation: fake-progress 900s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+        animation-play-state: running; 
+      }
+    </style>
+
+    <div class="vsl-wrapper">
+      <div id="player"></div>
+      
+      <div id="videoShield" class="click-shield"></div>
+
+      <div id="smartPlayBtn" class="overlay-container">
+        <div class="overlay-box">
+            <p class="top-text">Twój film już się rozpoczął</p>
+            
+            <div class="mute-icon-wrapper">
+                <svg class="volume-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9v6h4l5 5V4L7 9H3z" fill="white"/>
+                    <path class="wave wave-1" d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" fill="white"/>
+                    <path class="wave wave-2" d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="white"/>
+                    <path class="wave wave-3" d="M19.9,6.1c-0.6-0.6-1.4-0.6-2,0c-0.6,0.6-0.6,1.4,0,2c1.2,1.2,1.9,2.8,1.9,4.6c0,1.8-0.7,3.4-1.9,4.6 c-0.6,0.6-0.6,1.4,0,2c0.3,0.3,0.6,0.4,1,0.4c0.4,0,0.7-0.1,1-0.4c1.7-1.7,2.7-4,2.7-6.6C22.6,10.1,21.6,7.8,19.9,6.1z" fill="white"/>
+                    <line x1="3" y1="3" x2="21" y2="21" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            
+            <p class="bottom-text">Kliknij, aby posłuchać</p>
+        </div>
       </div>
-
-      <div style="position: absolute; top: 0; width: 100%; height: 15%; background-color: transparent; z-index: 101; left: 0;"></div> 
-      <div style="position: absolute; bottom: 0; width: 100%; height: 15%; background-color: transparent; z-index: 101; left: 0;"></div>
-
+      
+      <div id="pauseOverlay" class="pause-overlay">
+        <p class="pause-title">Już zacząłeś oglądać ten film</p>
+        
+        <div class="pause-actions">
+            <div id="btnContinue" class="pause-action-btn">
+                <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polygon points="10 8 16 12 10 16 10 8" fill="white"></polygon>
+                </svg>
+                <span>Kontynuować oglądanie?</span>
+            </div>
+            
+            <div id="btnRestart" class="pause-action-btn">
+                <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <polyline points="3 3 3 8 8 8"></polyline>
+                </svg>
+                <span>Oglądać od początku?</span>
+            </div>
+        </div>
+      </div>
+      
+      <div id="fakeBar" class="progress-bar"></div>
     </div>
 
   </div>
 </div>
 
 <script>
-  // Script que faz a capa sumir e dá play no vídeo
-  document.getElementById('capaFalsa').addEventListener('click', function() {
-    this.style.display = 'none'; // Esconde a capa
-    var iframe = document.getElementById('meuVideoYT');
-    iframe.src += '&autoplay=1'; // Força o autoplay no YouTube
+  // 1. Injeta a API do YouTube
+  var tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  var firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+  var player;
+  var hasUnmuted = false;
+
+  // 2. Configura o player
+  function onYouTubeIframeAPIReady() {
+    player = new YT.Player('player', {
+      videoId: 'Thxtu73Gp7M', 
+      playerVars: {
+        'autoplay': 1,      
+        'controls': 0,
+        'disablekb': 0,     
+        'fs': 0,            
+        'modestbranding': 1,
+        'playsinline': 1,
+        'rel': 0,
+        'showinfo': 0,
+        'mute': 1 
+      },
+      events: {
+        'onReady': onPlayerReady,
+        'onStateChange': onPlayerStateChange
+      }
+    });
+  }
+
+  function onPlayerReady(event) {
+    event.target.playVideo();
+    document.querySelector('#player').classList.add('ready');
+  }
+
+  // 3. Ouve as mudanças de estado do vídeo (Pausa / Play)
+  function onPlayerStateChange(event) {
+    var pauseOverlay = document.getElementById('pauseOverlay');
+    var fakeBar = document.getElementById('fakeBar');
+    
+    if (event.data === YT.PlayerState.PAUSED && hasUnmuted) {
+        pauseOverlay.style.display = 'flex';
+        fakeBar.style.animationPlayState = 'paused'; 
+    }
+    
+    if (event.data === YT.PlayerState.PLAYING && hasUnmuted) {
+        pauseOverlay.style.display = 'none';
+        fakeBar.style.animationPlayState = 'running'; 
+    }
+  }
+
+  // Função para zerar a barra vermelha
+  function resetProgressBar() {
+    var fakeBar = document.getElementById('fakeBar');
+    fakeBar.style.animation = 'none';
+    fakeBar.offsetHeight; 
+    fakeBar.style.animation = null;
+    fakeBar.style.animationPlayState = 'running';
+  }
+
+  // --- AÇÕES DE CLIQUE ---
+
+  // Ação 1: Clique na Thumb Inicial Pulsante
+  document.getElementById('smartPlayBtn').addEventListener('click', function() {
+    this.style.opacity = '0';
+    this.style.visibility = 'hidden';
+    hasUnmuted = true; 
+    
+    player.unMute();  
+    player.seekTo(0); 
+    player.playVideo(); 
+    resetProgressBar(); 
+  });
+
+  // Ação 2: Clicar no Escudo Transparente (Pausa o Vídeo)
+  document.getElementById('videoShield').addEventListener('click', function() {
+    if (hasUnmuted) {
+        player.pauseVideo();
+    }
+  });
+
+  // Ação 3: Clicar no fundo da Tela de Pausa para continuar
+  document.getElementById('pauseOverlay').addEventListener('click', function() {
+    player.playVideo();
+  });
+
+  // Ação 4: Botão "Continuar Assistindo"
+  document.getElementById('btnContinue').addEventListener('click', function(e) {
+    e.stopPropagation(); 
+    player.playVideo();
+  });
+
+  // Ação 5: Botão "Assistir do Início"
+  document.getElementById('btnRestart').addEventListener('click', function(e) {
+    e.stopPropagation(); 
+    player.seekTo(0);
+    player.playVideo();
+    resetProgressBar();
   });
 </script></div></div></div><div data-v-8eb46620="" data-v-796cd32d="" data-eid="877616" class="element-wrapper"><div data-v-8eb46620="" id="877616" class="headline el-877616 no-mobile no-tablet" style="line-height: 1; color: rgb(17, 16, 16); font-family: " playfair="" display";="" margin:="" 20px="" 10px;="" padding:="" 5px;="" text-shadow:="" transparent="" 0px="" 0px;"=""><style> .el-877616  {
     font-size: 28px;
