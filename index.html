@@ -255,11 +255,12 @@
       .pause-action-btn span { font-size: clamp(12px, 3vw, 18px); font-weight: 600; }
       .pause-action-btn svg { width: clamp(20px, 5vw, 30px); height: clamp(20px, 5vw, 30px); }
 
+      /* Ajuste especial de empilhamento de botões de pausa para celulares muito finos */
       @media (max-width: 480px) {
         .pause-actions { flex-direction: column; gap: 8px; }
       }
       
-      /* --- Barra de Progresso --- */
+      /* --- Barra de Progresso (Fina e Discreta) --- */
       @keyframes fake-progress {
         0% { width: 0%; }
         100% { width: 100%; }
@@ -268,11 +269,11 @@
       .progress-bar {
         position: absolute;
         bottom: 0; left: 0;
-        height: 4px; /* Barra com 4px de espessura (discreta mas visível) */
+        height: 2px; /* Deixei muito mais fina (era 5px) */
         background-color: #ff0000; 
         z-index: 30;
         width: 0%;
-        box-shadow: 0px -1px 4px rgba(255, 0, 0, 0.5); /* Brilho suave */
+        box-shadow: 0px -1px 3px rgba(255, 0, 0, 0.4); /* Brilho mais sutil */
         animation: fake-progress 900s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
         animation-play-state: running; 
       }
