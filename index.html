@@ -122,7 +122,7 @@
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
         opacity: 0; 
-        transition: opacity 0.3s ease-in; 
+        transition: opacity 0.5s ease-in; 
         pointer-events: none; /* Escudo invisível nativo */
         border: none;
       }
@@ -258,7 +258,7 @@
         .pause-actions { flex-direction: column; gap: 8px; }
       }
       
-      /* --- Barra de Progresso --- */
+      /* --- Barra de Progresso BEM FINA E DISCRETA --- */
       @keyframes fake-progress {
         0% { width: 0%; }
         100% { width: 100%; }
@@ -273,7 +273,7 @@
         width: 0%;
         box-shadow: 0px -1px 4px rgba(255, 0, 0, 0.5); 
         animation: fake-progress 900s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
-        animation-play-state: paused; /* Começa parada até o vídeo rodar */
+        animation-play-state: running; 
       }
       
       @media (max-width: 480px) {
@@ -286,7 +286,7 @@
 
     <div class="vsl-wrapper">
       
-      <iframe id="player" src="https://www.youtube.com/embed/Thxtu73Gp7M?autoplay=0&mute=1&controls=0&disablekb=0&fs=0&modestbranding=1&playsinline=1&rel=0&showinfo=0&enablejsapi=1" allow="autoplay; fullscreen"></iframe>
+      <iframe id="player" src="https://www.youtube.com/embed/Thxtu73Gp7M?autoplay=1&mute=1&controls=0&disablekb=0&fs=0&modestbranding=1&playsinline=1&rel=0&showinfo=0&enablejsapi=1" allow="autoplay; fullscreen"></iframe>
       
       <div id="videoShield" class="click-shield"></div>
 
@@ -337,6 +337,7 @@
 </div>
 
 <script>
+  // Carrega a API do YouTube
   var tag = document.createElement('script');
   tag.src = "https://www.youtube.com/iframe_api";
   var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -344,7 +345,10 @@
 
   var player;
   var hasUnmuted = false;
+  var isPlayerReady = false; // Flag para saber se a API terminou de carregar
+  var pendingClick = false;  // Flag para salvar o clique do usuário apressado
 
+  // A API se conecta ao iframe
   function onYouTubeIframeAPIReady() {
     player = new YT.Player('player', {
       events: {
@@ -355,21 +359,29 @@
   }
 
   function onPlayerReady(event) {
-    // Revela o player (que mostrará o frame 0 pausado)
+    isPlayerReady = true; // O player acordou!
     document.querySelector('#player').classList.add('ready');
+    
+    // Inicia o vídeo mutado (autoplay padrão)
+    event.target.setVolume(0);
+    event.target.playVideo(); 
+    
+    // Se o usuário clicou antes de o player estar pronto, executa a ação salva
+    if (pendingClick) {
+        executeUserPlayAction();
+        pendingClick = false;
+    }
   }
 
   function onPlayerStateChange(event) {
     var pauseOverlay = document.getElementById('pauseOverlay');
     var fakeBar = document.getElementById('fakeBar');
     
-    // Mostra tela de pausa se pausar após já ter iniciado
     if (event.data === YT.PlayerState.PAUSED && hasUnmuted) {
         pauseOverlay.style.display = 'flex';
         fakeBar.style.animationPlayState = 'paused'; 
     }
     
-    // Tira a tela e roda a barra quando der play
     if (event.data === YT.PlayerState.PLAYING && hasUnmuted) {
         pauseOverlay.style.display = 'none';
         fakeBar.style.animationPlayState = 'running'; 
@@ -384,20 +396,32 @@
     fakeBar.style.animationPlayState = 'running';
   }
 
-  // --- O CLIQUE INSTANTÂNEO ---
+  // Função centralizada e blindada que garante o áudio ligado
+  function executeUserPlayAction() {
+      player.unMute();           // Tira do mudo
+      player.setVolume(100);     // Força o volume no máximo
+      player.seekTo(0);          // Volta pro segundo zero
+      player.playVideo();        // Garante que está tocando
+      resetProgressBar();        // Zera a barra
+  }
+
+  // --- AÇÃO DE CLIQUE INICIAL ---
   document.getElementById('smartPlayBtn').addEventListener('click', function() {
     this.style.opacity = '0';
     this.style.visibility = 'hidden';
     hasUnmuted = true; 
     
-    player.unMute();  
-    player.setVolume(100);
-    // REMOVIDO o seekTo(0). Dá o play direto de onde está (no caso, no frame 0 carregado)
-    player.playVideo(); 
+    if (isPlayerReady) {
+        // Se o player carregou, solta o som na hora!
+        executeUserPlayAction();
+    } else {
+        // Se a internet tá lenta e o usuário clicou muito rápido, a gente salva a intenção dele
+        pendingClick = true;
+    }
   });
 
   document.getElementById('videoShield').addEventListener('click', function() {
-    if (hasUnmuted) {
+    if (hasUnmuted && isPlayerReady) {
         player.pauseVideo();
     }
   });
@@ -413,9 +437,7 @@
 
   document.getElementById('btnRestart').addEventListener('click', function(e) {
     e.stopPropagation(); 
-    player.seekTo(0);
-    player.playVideo();
-    resetProgressBar();
+    executeUserPlayAction(); // Usa a mesma função blindada
   });
 </script></div></div></div><div data-v-8eb46620="" data-v-796cd32d="" data-eid="877616" class="element-wrapper"><div data-v-8eb46620="" id="877616" class="headline el-877616 no-mobile no-tablet" style="line-height: 1; color: rgb(17, 16, 16); font-family: " playfair="" display";="" margin:="" 20px="" 10px;="" padding:="" 4px;="" text-shadow:="" transparent="" 0px="" 0px;"=""><style> .el-877616  {
     font-size: 28px;
