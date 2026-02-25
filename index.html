@@ -112,18 +112,17 @@
       .vsl-wrapper {
         position: relative;
         width: 100%;
-        padding-bottom: 56.25%; /* Proporção 16:9 */
+        padding-bottom: 56.25%; /* Proporção 16:9 perfeita em Desktop e Mobile */
         background-color: #000;
         overflow: hidden;
         border-radius: 8px; 
       }
       
-      /* Iframe Nativo (Carrega mais rápido) */
       .vsl-wrapper iframe {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
         opacity: 0; 
-        transition: opacity 0.3s ease-in; 
+        transition: opacity 0.5s ease-in; 
         pointer-events: none; /* Escudo invisível nativo */
         border: none;
       }
@@ -153,7 +152,7 @@
         transition: opacity 0.3s ease-out, visibility 0.3s;
       }
       
-      /* --- TELA 1: A Caixinha Centralizada (Pulsante) --- */
+      /* --- TELA 1: A Caixinha Centralizada (Responsiva e Pulsante) --- */
       @keyframes pulse-box {
         0% { transform: scale(0.97); opacity: 0.9; }
         50% { transform: scale(1.03); opacity: 1; box-shadow: 0px 15px 35px rgba(0,0,0,0.8), 0px 0px 15px rgba(255,255,255,0.2); }
@@ -185,8 +184,11 @@
       .top-text { font-size: clamp(15px, 4vw, 24px); font-weight: 700; }
       .bottom-text { font-size: clamp(13px, 3vw, 20px); font-weight: 600; }
       
-      /* --- ÍCONE DE VOLUME ANIMADO --- */
-      .volume-icon-svg { width: clamp(40px, 12vw, 70px); height: clamp(40px, 12vw, 70px); }
+      /* --- ÍCONE DE VOLUME ANIMADO COM CORTE (Responsivo) --- */
+      .volume-icon-svg { 
+        width: clamp(40px, 12vw, 70px); 
+        height: clamp(40px, 12vw, 70px); 
+      }
       
       @keyframes sound-waves {
         0% { opacity: 0; transform: translateX(-2px); }
@@ -204,7 +206,7 @@
       .wave-2 { animation-delay: 0.3s; }
       .wave-3 { animation-delay: 0.6s; }
 
-      /* --- TELA 2: Tela de Pausa --- */
+      /* --- TELA 2: Tela de Pausa (Adaptável) --- */
       .pause-overlay {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
@@ -256,7 +258,7 @@
         .pause-actions { flex-direction: column; gap: 8px; }
       }
       
-      /* --- Barra de Progresso --- */
+      /* --- Barra de Progresso BEM FINA E DISCRETA --- */
       @keyframes fake-progress {
         0% { width: 0%; }
         100% { width: 100%; }
@@ -265,7 +267,7 @@
       .progress-bar {
         position: absolute;
         bottom: 0; left: 0;
-        height: 4px; /* Desktop: 4px */
+        height: 4px; 
         background-color: #ff0000; 
         z-index: 30;
         width: 0%;
@@ -274,11 +276,10 @@
         animation-play-state: running; 
       }
       
-      /* AJUSTE EXCLUSIVO MOBILE: BARRA BEM MAIS FINA */
       @media (max-width: 480px) {
         .progress-bar {
-          height: 1.5px; /* Celular: Fina como um fio */
-          box-shadow: 0px -1px 2px rgba(255, 0, 0, 0.3); /* Quase sem brilho */
+          height: 1.5px; 
+          box-shadow: 0px -1px 2px rgba(255, 0, 0, 0.3);
         }
       }
     </style>
@@ -344,8 +345,10 @@
 
   var player;
   var hasUnmuted = false;
+  var isPlayerReady = false; // Flag para saber se a API terminou de carregar
+  var pendingClick = false;  // Flag para salvar o clique do usuário apressado
 
-  // Como o iframe já existe, a API apenas "se conecta" a ele (super rápido)
+  // A API se conecta ao iframe
   function onYouTubeIframeAPIReady() {
     player = new YT.Player('player', {
       events: {
@@ -356,8 +359,18 @@
   }
 
   function onPlayerReady(event) {
+    isPlayerReady = true; // O player acordou!
     document.querySelector('#player').classList.add('ready');
-    event.target.playVideo(); // Garante o play nativo
+    
+    // Inicia o vídeo mutado (autoplay padrão)
+    event.target.setVolume(0);
+    event.target.playVideo(); 
+    
+    // Se o usuário clicou antes de o player estar pronto, executa a ação salva
+    if (pendingClick) {
+        executeUserPlayAction();
+        pendingClick = false;
+    }
   }
 
   function onPlayerStateChange(event) {
@@ -383,19 +396,32 @@
     fakeBar.style.animationPlayState = 'running';
   }
 
+  // Função centralizada e blindada que garante o áudio ligado
+  function executeUserPlayAction() {
+      player.unMute();           // Tira do mudo
+      player.setVolume(100);     // Força o volume no máximo
+      player.seekTo(0);          // Volta pro segundo zero
+      player.playVideo();        // Garante que está tocando
+      resetProgressBar();        // Zera a barra
+  }
+
+  // --- AÇÃO DE CLIQUE INICIAL ---
   document.getElementById('smartPlayBtn').addEventListener('click', function() {
     this.style.opacity = '0';
     this.style.visibility = 'hidden';
     hasUnmuted = true; 
     
-    player.unMute();  
-    player.seekTo(0); 
-    player.playVideo(); 
-    resetProgressBar(); 
+    if (isPlayerReady) {
+        // Se o player carregou, solta o som na hora!
+        executeUserPlayAction();
+    } else {
+        // Se a internet tá lenta e o usuário clicou muito rápido, a gente salva a intenção dele
+        pendingClick = true;
+    }
   });
 
   document.getElementById('videoShield').addEventListener('click', function() {
-    if (hasUnmuted) {
+    if (hasUnmuted && isPlayerReady) {
         player.pauseVideo();
     }
   });
@@ -411,9 +437,7 @@
 
   document.getElementById('btnRestart').addEventListener('click', function(e) {
     e.stopPropagation(); 
-    player.seekTo(0);
-    player.playVideo();
-    resetProgressBar();
+    executeUserPlayAction(); // Usa a mesma função blindada
   });
 </script></div></div></div><div data-v-8eb46620="" data-v-796cd32d="" data-eid="877616" class="element-wrapper"><div data-v-8eb46620="" id="877616" class="headline el-877616 no-mobile no-tablet" style="line-height: 1; color: rgb(17, 16, 16); font-family: " playfair="" display";="" margin:="" 20px="" 10px;="" padding:="" 4px;="" text-shadow:="" transparent="" 0px="" 0px;"=""><style> .el-877616  {
     font-size: 28px;
